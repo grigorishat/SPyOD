@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "SPyOD_test"
+version = "0.0.1"
+authors = [
+  { name="Grigorios Ha", email="grigorios.hatzissawidis@gmail.com" },
+]
+description = "Spectral Proper Orthogonal Decomposition, first release"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/grigorishat/SPyOD"
