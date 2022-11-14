@@ -6,6 +6,7 @@
   * [Description](#description)
   * [Installation](#installation)
   * [License](#license)
+  * [Contact us](#contact-us)
   * [Contributors](#contributors)
 
 
@@ -28,13 +29,15 @@ The SPyOD package can be installed using the following command:
 ```bash
 $ pip install spyod
 ```
-## Licence
+## License
 
 __SPyOD__ is released under the MIT License. Please have a look at [LICENSE.md](LICENSE.md) for more details.
 
-## Contributors
+## Contact us
+The best way to contribute is to report any issues you mention for improvement and extension of the code or documentation as well as fixing bugs etc. Feel free to contact us. 
 
-Thanks go to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+
+## Contributors
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
