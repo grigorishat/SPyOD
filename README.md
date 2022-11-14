@@ -16,9 +16,9 @@ __SPyOD__ is the python implementation of the Spectral Proper Orthogonal Decompo
 
 It includes two __.py-files__:
 
-- `calc_SPOD.py` - Includes the function `spod` which calculates the SPOD and
+- `spod.py` - Includes the function `spod` which calculates the SPOD and
 
-- `find_mode_pairs_from_SPOD.py` - Includes the post-processing of the SPOD in the function `find_spod_pairs` which finds linked modes as described in [Sieber et al. in 2016](https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/spectral-proper-orthogonal-decomposition/DCD8A6EDEFD56F5A9715DBAD38BD461A)
+- `findpairs.py` - Includes the post-processing of the SPOD in the function `findpairs` which finds linked modes as described in [Sieber et al. in 2016](https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/spectral-proper-orthogonal-decomposition/DCD8A6EDEFD56F5A9715DBAD38BD461A)
 
 
 and one __jupyter notebook__ example `example_SPOD_free_jet.ipynb` of the SPOD of experimental PIV data from a free jet flow. The data are stored in `PIV_jext_example.mat`.
@@ -27,8 +27,14 @@ and one __jupyter notebook__ example `example_SPOD_free_jet.ipynb` of the SPOD o
 
 The __SPyOD__ package can be installed using the following command:
 ```bash
-$ pip install spyod
+$ pip install SPyOD
 ```
+The package can be loaded by
+```bash
+$ from spyod.spod import spod
+$ from spyod.findpairs import findpairs
+```
+
 ## License
 
 __SPyOD__ is released under the MIT License. Please have a look at [LICENSE.md](LICENSE.md) for more details.
