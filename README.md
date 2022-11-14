@@ -29,7 +29,7 @@ The __SPyOD__ package can be installed using the following command:
 ```bash
 $ pip install SPyOD
 ```
-The package can be loaded by
+The package can be imported by
 ```bash
 $ from spyod.spod import spod
 $ from spyod.findpairs import findpairs
