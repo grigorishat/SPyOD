@@ -1,4 +1,4 @@
-name: SPyOD on testpypi
+name: SPyOD
 
 on: 
   release:

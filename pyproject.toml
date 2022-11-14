@@ -3,12 +3,12 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "SPyOD_test"
-version = "0.0.1"
+name = "SPyOD"
+version = "0.1.0"
 authors = [
-  { name="Grigorios Ha", email="grigorios.hatzissawidis@gmail.com" },
+  { name="Grigorios Hatzissawidis", email="grigorios.hatzissawidis@fst.tu-darmstadt.de" },
 ]
-description = "Spectral Proper Orthogonal Decomposition, first release"
+description = "Spectral Proper Orthogonal Decomposition"
 readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [

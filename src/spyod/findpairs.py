@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+This finds the coupled mode pairs.
+
 Created on Mon Mar 28 13:54:15 2022
 
 @author: Hatzissawidis
@@ -10,7 +12,7 @@ The code is based on https://www.researchgate.net/publication/280933681_SPOD_mat
 
 import numpy as np
 
-def find_spod_pairs(a):
+def findpairs(a):
     """
     This function finds mode pairs from a Spectral Proper Orthogonal Decomposition.
 
