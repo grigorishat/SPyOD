@@ -23,6 +23,8 @@ It includes two __.py-files__:
 
 and one __jupyter notebook__ example `example_SPOD_free_jet.ipynb` of the SPOD of experimental PIV data from a free jet flow. The data are stored in `PIV_jext_example.mat`.
 
+The paper is made publicly available by the TU berlin at [https://doi.org/10.14279/depositonce-6377](https://doi.org/10.14279/depositonce-6377).
+
 ## Installation 
 
 The __SPyOD__ package can be installed using the following command:
