@@ -368,7 +368,7 @@ def parse_input(in_data,in_set):
         warnings.warn('SPOD:LargeProblem computation may take some time')
 
     #print(Nsnap, Ncomp, Ngrid, Nfilt, Npod, input_size, Wxyz, boundary, corr_type, f)
-    print('Input parameter checked! :) :)')
+    print('Input parameter checked.')
     return Nsnap, Ncomp, Ngrid, Nfilt, Npod, input_size, Wxyz, boundary, corr_type, f
 
 
