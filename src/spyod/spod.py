@@ -86,27 +86,30 @@ def spod(*args, **kwargs):
     """
     t = time.time()
     # parse input arguments
-    Nsnap, Ncomp, Ngrid, Nfilt, Npod, input_size, Wxyz, boundary, corr_type, f = parse_input(args,kwargs)
+    Nsnap, Ncomp, Ngrid, Nfilt, Npod, input_size, Wxyz, boundary, corr_type, f = parse_input(args, kwargs)
 
-    print("There are {} components.".format(Ncomp)) #pylint: disable=consider-using-f-string
+    if Ncomp == 1:
+        print("There is {} input component.".format(Ncomp)) #pylint: disable=consider-using-f-string
+    elif Ncomp > 1:
+        print("There are {} input components.".format(Ncomp)) #pylint: disable=consider-using-f-string
 
     if corr_type == 'temporal':
 
     # calculate temporal correlation matrix
-        R = np.zeros((Nsnap,Nsnap))
+        R = np.zeros((Nsnap, Nsnap))
 
         for ii in range(Ncomp):
-            U = np.transpose(args[ii]).reshape((Ngrid,Nsnap))
+            U = np.transpose(args[ii]).reshape((Ngrid, Nsnap))
             R = R + U.transpose() * Wxyz @ U
-        R = R/Nsnap/np.sum(Wxyz)
+        R = R / Nsnap / np.sum(Wxyz)
 
         # calculate filtered correlation matrix S
 
         if boundary == "periodic":
             # convolve periodically extended matrix with filtered diagonal matrix
 
-            ind = np.array(range(1-Nfilt, Nsnap+Nfilt+1))
-            ind = np.mod(ind-1,Nsnap)
+            ind = np.array(range(1-Nfilt, Nsnap + Nfilt + 1))
+            ind = np.mod(ind - 1, Nsnap)
             #S = convolve2d(R[np.ix_(ind, ind)], np.diag(f), mode = "valid")
             S = fftconvolve(R[np.ix_(ind, ind)], np.diag(f), mode = "valid")
 
@@ -115,7 +118,7 @@ def spod(*args, **kwargs):
         elif boundary == "DFTcase":
             rr = np.zeros(Nsnap)
             for ii in range(Nsnap):
-                rr[ii] = np.sum(np.diag(R,ii))*f[0]
+                rr[ii] = np.sum(np.diag(R, ii)) * f[0]
 
             # periodic boundary condition -> circulant matrix
             rr[1:] = rr[1:] + rr[:0:-1]
@@ -126,7 +129,7 @@ def spod(*args, **kwargs):
 
         elif boundary == "zeros":
             #S = convolve2d(R,np.diag(f), mode = "same")
-            S = fftconvolve(R, np.diag(f), mode = "same") # much faster than convolve2d
+            S = fftconvolve(R, np.diag(f), mode="same") # much faster than convolve2d
 
         # calculate eigenvalues and eigenvectors of S and sort in descending order
         # distinguish between DFTcase and periodic/ zeros, since eigh is used for symmetric matrices
@@ -139,7 +142,7 @@ def spod(*args, **kwargs):
 
         idx = w.argsort()[::-1]
         lmbd = w[idx] # mode variance or energy in case of velocity data
-        v = v[:,idx] # normalised temporal coefficients
+        v = v[:, idx] # normalised temporal coefficients
 
         # cut off POD modes according to the rank of matrix S
         Nrank = np.linalg.matrix_rank(S)
@@ -147,6 +150,13 @@ def spod(*args, **kwargs):
         if not Npod:
             Npod = Nrank
         elif Npod > Nrank:
+            Npod = Nrank
+            print('SPODrankDeficit: Correlation matrix rank is less than number of request POD modes. Npod is set to Nrank. Npod = '+ str(Nrank))
+        
+        # delete those negative eigenvalues, which are not deleted in the previous step,
+        # since correlation matrix is positive-definite or positive-semidefinite when mean flow field is subtracted
+        Nrank = len(lmbd[lmbd > 0])
+        if any(lmbd < 0) and Npod > Nrank:
             Npod = Nrank
             print('SPODrankDeficit: Correlation matrix rank is less than number of request POD modes. Npod is set to Nrank. Npod = '+ str(Nrank))
 
@@ -197,12 +207,12 @@ def spod(*args, **kwargs):
                             # correlation with finite signal (zero padded)
                             u_lim = min([Nsnap-i, Nsnap-j, Nsnap])
                             l_lim = max([1-i, 1-j, 1])
-                            subi = np.array(range(l_lim, u_lim,1)) + i
-                            subj = np.array(range(l_lim, u_lim,1)) + j
-                            R[:,indi,k,:,indj,l] = np.multiply(f_ij, Uk[:,subi] @ Ul[:,subj].transpose())
+                            subi = np.array(range(l_lim, u_lim, 1)) + i
+                            subj = np.array(range(l_lim, u_lim, 1)) + j
+                            R[:, indi, k,:, indj, l] = np.multiply(f_ij, Uk[:, subi] @ Ul[:, subj].transpose())
 
         del Uk, Ul
-        R = np.reshape(R,(Ncorr,Ncorr),order='F') / (Nsnap*sum(Wxyz))
+        R = np.reshape(R,(Ncorr, Ncorr), order='F') / (Nsnap * sum(Wxyz))
 
 # calculate eigenvalues and eigenvector of R
         lmbd, v = np.linalg.eig(R) # energy of modes and normalized spatial modes
@@ -214,6 +224,13 @@ def spod(*args, **kwargs):
         elif Npod > Nrank:
             Npod = Nrank
             print('SPODrankDeficit: Correlation matrix rank is less than number of request POD modes. Npod is set to Nrank.')
+
+        # delete those negative eigenvalues, which are not deleted in the previous step,
+        # since correlation matrix is positive-definite or positive-semidefinite when mean flow field is subtracted
+        Nrank = len(lmbd[lmbd > 0])
+        if any(lmbd < 0) and Npod > Nrank:
+            Npod = Nrank
+            print('SPODrankDeficit: Correlation matrix rank is less than number of request POD modes. Npod is set to Nrank. Npod = '+ str(Nrank))
 
         # compute scaled temporal coefficients
         output_size = np.array(input_size)

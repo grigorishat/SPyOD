@@ -4,9 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "SPyOD"
-version = "0.1.4"
+version = "0.1.5"
 authors = [
   { name="Grigorios Hatzissawidis", email="grigorios.hatzissawidis@fst.tu-darmstadt.de" },
+  { name="Moritz Sieber", email="moritz.sieber@tu-berlin.de" },
 ]
 description = "Spectral Proper Orthogonal Decomposition"
 readme = "README.md"
