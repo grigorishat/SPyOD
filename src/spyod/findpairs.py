@@ -30,8 +30,8 @@ def findpairs(a):
     """
     Nsnap, Npod = np.shape(a)
     # relative energy content, without the part which is cut off 
-    lmbd = np.diag(np.dot(a.transpose(),a))
-    lmbd = lmbd/np.sum(lmbd)
+    lmbd = np.diag(np.dot(a.transpose(), a))
+    lmbd = lmbd / np.sum(lmbd)
 
     ag = np.gradient(a) # gradient
     ag = ag[0]
@@ -53,11 +53,19 @@ def findpairs(a):
     # problem in relative mode energy: last mode is the first, so change
     Nmode = np.trunc(Npod/2)
     Nmode = Nmode.astype(int)
+
+    precision = a.dtype
+    if precision == np.float32:
+        precision_comp = np.complex64
+    elif precision == np.float64:
+        precision_comp = np.complex128
+    else:
+        precision_comp = np.complex128
     
-    mode = {'c' : np.zeros(Nmode),'ind' : np.zeros((Nmode,2)),
-            'a' : np.zeros((Nmode, Nsnap), dtype=complex),
-            'at': np.zeros((Nmode, Nsnap), dtype=complex),
-            'K' : np.zeros(Nmode),'f' : np.zeros(Nmode)}
+    mode = {'c' : np.zeros(Nmode, dtype=precision),'ind' : np.zeros((Nmode,2), dtype=int),
+            'a' : np.zeros((Nmode, Nsnap), dtype=precision_comp),
+            'at': np.zeros((Nmode, Nsnap), dtype=precision_comp),
+            'K' : np.zeros(Nmode, dtype=precision),'f' : np.zeros(Nmode, dtype=precision)}
 
     for i in range(Nmode):
         #pick maximum

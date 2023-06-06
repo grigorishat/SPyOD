@@ -86,7 +86,7 @@ def spod(*args, **kwargs):
     """
     t = time.time()
     # parse input arguments
-    Nsnap, Ncomp, Ngrid, Nfilt, Npod, input_size, Wxyz, boundary, corr_type, f = parse_input(args, kwargs)
+    Nsnap, Ncomp, Ngrid, Nfilt, Npod, input_size, Wxyz, boundary, corr_type, f, precision = parse_input(args, kwargs)
 
     if Ncomp == 1:
         print("There is {} input component.".format(Ncomp)) #pylint: disable=consider-using-f-string
@@ -96,10 +96,10 @@ def spod(*args, **kwargs):
     if corr_type == 'temporal':
 
     # calculate temporal correlation matrix
-        R = np.zeros((Nsnap, Nsnap))
+        R = np.zeros((Nsnap, Nsnap), dtype=precision)
 
-        for ii in range(Ncomp):
-            U = np.transpose(args[ii]).reshape((Ngrid, Nsnap))
+        for i in range(Ncomp):
+            U = np.transpose(args[i]).reshape((Ngrid, Nsnap))
             R = R + U.transpose() * Wxyz @ U
         R = R / Nsnap / np.sum(Wxyz)
 
@@ -117,8 +117,8 @@ def spod(*args, **kwargs):
         # dft case
         elif boundary == "DFTcase":
             rr = np.zeros(Nsnap)
-            for ii in range(Nsnap):
-                rr[ii] = np.sum(np.diag(R, ii)) * f[0]
+            for i in range(Nsnap):
+                rr[i] = np.sum(np.diag(R, i)) * f[0]
 
             # periodic boundary condition -> circulant matrix
             rr[1:] = rr[1:] + rr[:0:-1]
@@ -161,35 +161,35 @@ def spod(*args, **kwargs):
             print('SPODrankDeficit: Correlation matrix rank is less than number of request POD modes. Npod is set to Nrank. Npod = '+ str(Nrank))
 
 # compute scaled temporal coefficients
-        a = np.multiply(v[:,:Npod],np.sqrt(Nsnap*lmbd[:Npod]))
+        a = np.multiply(v[:, :Npod],np.sqrt(Nsnap * lmbd[:Npod]))
 
 # calculate spatial modes for all components
-        a_proj = np.divide(v[:,:Npod],np.sqrt(Nsnap*lmbd[:Npod]))
+        a_proj = np.divide(v[:, :Npod],np.sqrt(Nsnap * lmbd[:Npod]))
         output_size = list(input_size)
         output_size[0] = Npod
-        mode_norm = np.zeros(Npod)
+        mode_norm = np.zeros(Npod, dtype=precision)
         Ui = list()
 
         for i in range(Ncomp):
 
-            U = np.transpose(args[i]).reshape((Ngrid,Nsnap))
+            U = np.transpose(args[i]).reshape((Ngrid, Nsnap))
             #Ui.append(np.dreshape(np.dot(U,a_proj),output_size))
             #Ui_vec = np.dot(U,a_proj)
-            mode_norm = mode_norm + np.sum(np.dot(U,a_proj).T**2 * Wxyz,axis=1)/np.sum(Wxyz)
+            mode_norm = mode_norm + np.sum(np.dot(U, a_proj).T**2 * Wxyz, axis=1) / np.sum(Wxyz)
             Ui.append(np.dot(U,a_proj).T.reshape(output_size, order = 'F'))
 
     if corr_type == "spatial":
         Nfilt2 = f.size
-        Ncorr = Ngrid*Nfilt2*Ncomp
-        R = np.zeros((Ngrid,Nfilt2,Ncomp,Ngrid,Nfilt2,Ncomp))
+        Ncorr = Ngrid * Nfilt2 * Ncomp
+        R = np.zeros((Ngrid, Nfilt2, Ncomp, Ngrid, Nfilt2, Ncomp))
 
         # first loop over input component
         for k in range(Ncomp):
-            Uk = np.transpose(args[k]).reshape((Ngrid,Nsnap))* np.sqrt(Wxyz)[:,None]
+            Uk = np.transpose(args[k]).reshape((Ngrid, Nsnap))* np.sqrt(Wxyz)[:,None]
 
             # second loop over input component
             for l in range(Ncomp):
-                Ul = np.transpose(args[l]).reshape((Ngrid,Nsnap))* np.sqrt(Wxyz)[:,None]
+                Ul = np.transpose(args[l]).reshape((Ngrid, Nsnap))* np.sqrt(Wxyz)[:,None]
 
                 # first loop over filter coefficient
                 for i in range(-Nfilt, Nfilt + 1, 1):
@@ -235,18 +235,18 @@ def spod(*args, **kwargs):
         # compute scaled temporal coefficients
         output_size = np.array(input_size)
         output_size[0] = Npod
-        a = np.zeros((Nsnap,Npod),dtype = 'complex_')
-        mode_norm = np.zeros((1,Npod))
+        a = np.zeros((Nsnap, Npod),dtype = 'complex_')
+        mode_norm = np.zeros((1, Npod), dtype=precision)
         Nconvfilt = Ngrid * Nfilt2
         Ui = list()
         for j in range(Ncomp):
-            U = np.transpose(args[j]).reshape((Ngrid,Nsnap))
+            U = np.transpose(args[j]).reshape((Ngrid, Nsnap))
             if boundary == "periodic":
                 # create periodically extended time series
-                Uext = np.concatenate((U[:,-Nfilt:], U, U[:,0:Nfilt]),1)
+                Uext = np.concatenate((U[:,-Nfilt:], U, U[:,0:Nfilt]), 1)
             else: 
                 # create zero padded time series
-                Uext = np.concatenate((np.zeros((Ngrid,Nfilt)),U,np.zeros((Ngrid,Nfilt))),1)
+                Uext = np.concatenate((np.zeros((Ngrid,Nfilt)), U, np.zeros((Ngrid, Nfilt))), 1)
 
             idx = j * Nconvfilt + range(Nconvfilt) 
 
@@ -270,11 +270,11 @@ def spod(*args, **kwargs):
             mode_norm = mode_norm + np.sum(Ui_vec**2 * Wxyz[:,None])/np.sum(Wxyz)
             Ui.append(Ui_vec.T.reshape(output_size, order = 'F'))
 
-    print("Elapsed: %.2f min" %(np.double((time.time() - t))/60)) #pylint: disable=consider-using-f-string
+    print("Elapsed: %.2f min" %(np.double((time.time() - t)) / 60)) #pylint: disable=consider-using-f-string
 
     return lmbd, a, mode_norm, Ui
 
-def parse_input(in_data,in_set):
+def parse_input(in_data, in_set):
     """
     this function checks the data for validity
 
@@ -283,14 +283,26 @@ def parse_input(in_data,in_set):
 
     output: Nsnap, Ncomp, Ngrid, Nfilt, Npod, input_size, Wxyz, boundary, corr_type, f
     """
+
+    if 'precision' in in_set:
+        if in_set.get('precision') == 'double':
+            precision = np.float64
+        elif in_set.get('precision') == 'single':
+            precision = np.float32
+        else:
+            print('Invalid input for precision. Precision must be "single" or "double". Set to "double".')
+            precision = np.float64
+    else: 
+        precision = np.float64
+
     Ncomp = len(in_data)
     assert not Ncomp < 1, 'Input components U,V,W,.. are missing.'
 
     # determine size of input data
-    for ii in range(Ncomp):
-        U = in_data[ii]
+    for i in range(Ncomp):
+        U = in_data[i]
 
-        if ii == 0:
+        if i == 0:
             input_size = U.shape
             Nsnap = input_size[0]
         else:
@@ -341,7 +353,7 @@ def parse_input(in_data,in_set):
         else:
             raise Exception('dimension of weighting does not match the input data.')
     else:
-        Wxyz = np.ones(Ngrid)
+        Wxyz = np.ones(Ngrid, dtype=precision)
 
 
     if 'boundary' in in_set:
@@ -365,10 +377,10 @@ def parse_input(in_data,in_set):
     # define filter
     if Nfilt == Nsnap and corr_type == 'temporal':
     # choose box filter to obtain DFT
-        f = filter_coefficient(Nfilt, 'box')
+        f = filter_coefficient(Nfilt, 'box', precision)
         boundary = "DFTcase"
     else:
-        f = filter_coefficient(Nfilt, 'gauss')
+        f = filter_coefficient(Nfilt, 'gauss', precision)
 
 
 
@@ -376,7 +388,7 @@ def parse_input(in_data,in_set):
     if corr_type == 'temporal':
         Ncorr = Nsnap
     else: # spatial
-        Ncorr = Ngrid*len(f)
+        Ncorr = Ngrid * len(f)
     if Ncorr > 10000:
         warnings.warn('SPOD:LargeProblem computation takes long time >1 hour')
     elif Ncorr > 2000:
@@ -384,12 +396,12 @@ def parse_input(in_data,in_set):
     elif Ncorr > 1000:
         warnings.warn('SPOD:LargeProblem computation may take some time')
 
-    #print(Nsnap, Ncomp, Ngrid, Nfilt, Npod, input_size, Wxyz, boundary, corr_type, f)
+
     print('Input parameter checked.')
-    return Nsnap, Ncomp, Ngrid, Nfilt, Npod, input_size, Wxyz, boundary, corr_type, f
+    return Nsnap, Ncomp, Ngrid, Nfilt, Npod, input_size, Wxyz, boundary, corr_type, f, precision
 
 
-def filter_coefficient(N_filt, filt_type):
+def filter_coefficient(N_filt, filt_type, precision):
     """
     calculates the filter coefficient for a box or a gaussian filter
 
@@ -397,10 +409,10 @@ def filter_coefficient(N_filt, filt_type):
     output: filter coefficient f
     """
     if filt_type == 'box':
-        f = np.ones(N_filt)
+        f = np.ones(N_filt, dtype=precision)
     elif filt_type == 'gauss':
-        f = np.exp(-np.linspace(-2.285,2.285,2*N_filt+1)**2)
+        f = np.exp(-np.linspace(-2.285, 2.285, 2 * N_filt + 1)**2, dtype=precision)
     else:
         raise Exception('unknown filter type.')
-    f = f/np.sum(f)
+    f = f / np.sum(f)
     return f
