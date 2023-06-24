@@ -105,17 +105,8 @@ def spod(*args, **kwargs):
 
         # calculate filtered correlation matrix S
 
-        if boundary == "periodic":
-            # convolve periodically extended matrix with filtered diagonal matrix
-
-            ind = np.array(range(1-Nfilt, Nsnap + Nfilt + 1))
-            ind = np.mod(ind - 1, Nsnap)
-            #S = convolve2d(R[np.ix_(ind, ind)], np.diag(f), mode = "valid")
-            S = fftconvolve(R[np.ix_(ind, ind)], np.diag(f), mode = "valid")
-
-
         # dft case
-        elif boundary == "DFTcase":
+        if boundary == "DFTcase":
             rr = np.zeros(Nsnap)
             for i in range(Nsnap):
                 rr[i] = np.sum(np.diag(R, i)) * f[0]
@@ -124,12 +115,11 @@ def spod(*args, **kwargs):
             rr[1:] = rr[1:] + rr[:0:-1]
             S = toeplitz(rr)
 
-        # convolve zero padded matrix with filter diagonal matrix
-        # ("center" differs from matlab if number of rows/ columns is odd)
+        # if boundary is zero padded or periodic use the function convdiag
+        elif boundary == "zeros" or boundary == "periodic":
+            S = convdiag(R, np.diag(f), boundary=boundary)
 
-        elif boundary == "zeros":
-            #S = convolve2d(R,np.diag(f), mode = "same")
-            S = fftconvolve(R, np.diag(f), mode="same") # much faster than convolve2d
+
 
         # calculate eigenvalues and eigenvectors of S and sort in descending order
         # distinguish between DFTcase and periodic/ zeros, since eigh is used for symmetric matrices
@@ -416,3 +406,33 @@ def filter_coefficient(N_filt, filt_type, precision):
         raise Exception('unknown filter type.')
     f = f / np.sum(f)
     return f
+
+def convdiag(matrix, diagonal_matrix, boundary):
+    """_summary_
+
+    Args:
+        matrix R (numpy array): input covariance matrix to be convolved
+        diagonal_matrix (_type_): kernel as a diagonal matrix
+        boundary (_type_): 'zeros' or 'periodic' boundaries of the matrix
+
+    Raises:
+        ValueError: if boundary is not valid 
+
+    Returns:
+        matrix S: filtered covariance matrix
+    """
+    m, n = matrix.shape # should be m=n which is nsnap
+    d = diagonal_matrix.shape[0]
+    D = np.diag(diagonal_matrix)
+    pad_width = d // 2 # or Nfilt
+    if boundary == 'zeros':
+        padded_matrix = np.pad(matrix, pad_width, mode='constant')
+    elif boundary == 'periodic':
+        ind = np.array(range(1 - pad_width, m + pad_width + 1))
+        ind = np.mod(ind - 1, m)
+        padded_matrix = matrix[np.ix_(ind, ind)]
+    else:
+        raise ValueError("Boundary must be 'zeros' or 'periodic'.")
+    s0, s1 = padded_matrix.strides
+    MM=np.lib.stride_tricks.as_strided(padded_matrix, shape=(m, n, d), strides=(s0, s1, s0+s1))
+    return MM@D
